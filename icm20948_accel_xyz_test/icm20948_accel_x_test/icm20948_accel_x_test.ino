@@ -78,6 +78,9 @@ void setup(void) {
   Serial.println("Capteur prêt pour le contrôle des LED !");
 }
 
+String dataX;
+String dataY;
+String dataZ;
 void loop() {
   sensors_event_t accel;
   sensors_event_t gyro;
@@ -91,18 +94,22 @@ void loop() {
   float valeurY = accel.acceleration.y;
   float valeurZ = accel.acceleration.z;
 
-  Serial.print("Inclinaison X: ");
-  Serial.print(valeurX);
-  Serial.print(" m/s^2; ");
+  dataX = "X: " + String(valeurX) + "m/s^2"; 
+  //Serial.print("X: ");
+  //Serial.print(valeurX);
+  //Serial.print(" m/s^2; ");
+  //Serial.print(data);
 
-  Serial.print(" Y: ");
-  Serial.print(valeurY);
-  Serial.print(" m/s^2; ");
+  dataY = " Y: " + String(valeurY) + " m/s^2; ";
+  //Serial.print(" Y: ");
+  //Serial.print(valeurY);
+  //Serial.print(" m/s^2; ");
 
-  Serial.print(" Z: ");
-  Serial.print(valeurZ);
-  Serial.println(" m/s^2");
-
+  dataZ = " Z: " + String(valeurZ) + " m/s^2\n";
+  //Serial.print(" Z: ");
+  //Serial.print(valeurZ);
+  //Serial.print(" m/s^2\n");
+  Serial.print(dataX + dataY + dataZ);
   // logique d'allumage des LED
 
   // AXE X
