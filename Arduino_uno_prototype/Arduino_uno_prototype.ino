@@ -173,6 +173,12 @@ void loop() {
   delayMicroseconds(50);
   etatC2 = analogRead(SIG);
 
+  selectChannel(3);
+  delayMicroseconds(50);
+  int etatC3 = analogRead(SIG);
+  delayMicroseconds(50);
+  etatC3 = analogRead(SIG);
+
   // Affichage résultats
   Serial.print("Canal C0  -> ");
   Serial.println(etatC0);
@@ -183,6 +189,9 @@ void loop() {
   Serial.print("Canal C2  -> ");
   Serial.println(etatC2);
 
+  Serial.print("Canal C3  -> ");
+  Serial.println(etatC3);
 
-  delay(100);
+
+  delay(200);
 }

@@ -7,7 +7,7 @@
 #include <SPI.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_ILI9341.h>
-
+#include <XPT2046_Touchscreen.h>
 
 #define TFT_CS   10
 #define TFT_DC    8
@@ -17,9 +17,18 @@
 #define TFT_MISO 50
 #define TFT_SCK  52
 
+// Broche Tactile
+#define TOUCH_CS  7
+
 // Initialisation
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCK, TFT_RST, TFT_MISO);
+XPT2046_Touchscreen ts(TOUCH_CS);
 
+// Valeurs de calibration pout le tactile
+#define TS_MINX 590
+#define TS_MAXX 3800
+#define TS_MINY 700
+#define TS_MAXY 3800
 
 void setup() {
 
@@ -48,13 +57,19 @@ void setup() {
   tft.setTextColor(ILI9341_WHITE);
   tft.setCursor(10, 40);
   tft.println("Attente de l'UART...");
+
+  // Initialisation du tactile sur le bus SPI matériel
+  ts.begin(SPI);
+  ts.setRotation(3);
 }
 
 String fill = "";
 String input = "";
+
 void loop() {
 
-  if (Serial1.available() > 0) {
+  if (Serial1.available() > 0)
+  {
     char caractereRecu;
     //char caractereRecu = Serial1.read();
     fill = input;
@@ -69,20 +84,29 @@ void loop() {
     tft.setTextColor(ILI9341_WHITE);
     tft.setCursor(10, 60);
     tft.print(input);
-
-    if (caractereRecu == '\n' || caractereRecu == '\r'
-        || input.endsWith("\n") || input.endsWith("\r"))
-    {
-     //Serial.print('\n');
-      //tft.print('\n');
-     // tft.setCursor(10, 50);
-    } 
-    else {
-     
-      //Serial.print(caractereRecu);
-      
-     
-    //  tft.print(caractereRecu);
-    }
   }
+
+   // On vérifie si l'écran détecte une pression physique
+  if (ts.touched())
+  {
+    TS_Point p = ts.getPoint();
+    
+    // Convertir les coordonnées brutes de la puce en Pixels de l'écran (320x240)
+    int pixelX = map(p.x, TS_MINX, TS_MAXX, 0, 320);
+    int pixelY = map(p.y, TS_MINY, TS_MAXY, 0, 240);
+    
+    // Sécurité pour ne pas dépasser les bords de l'écran
+    pixelX = constrain(pixelX, 0, 320);
+    pixelY = constrain(pixelY, 0, 240);
+    
+    // Affichage sur le moniteur série
+    Serial.print("Brut X:"); Serial.print(p.x);
+    Serial.print(" Y:"); Serial.print(p.y);
+    Serial.print("  ->  Pixels X:"); Serial.print(pixelX);
+    Serial.print(" Y:"); Serial.println(pixelY);
+    
+    // Dessiner un petit carré
+    tft.fillRect(320 - pixelX, pixelY - 2, 4, 4, ILI9341_WHITE);
+  }
+  delay(5);
 }
