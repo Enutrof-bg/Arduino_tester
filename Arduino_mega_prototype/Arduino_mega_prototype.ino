@@ -22,7 +22,6 @@
 
 // Initialisation
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCK, TFT_RST, TFT_MISO);
-XPT2046_Touchscreen ts(TOUCH_CS);
 
 // Valeurs de calibration pout le tactile
 #define TS_MINX 590
@@ -58,9 +57,6 @@ void setup() {
   tft.setCursor(10, 40);
   tft.println("Attente de l'UART...");
 
-  // Initialisation du tactile sur le bus SPI matériel
-  ts.begin(SPI);
-  ts.setRotation(3);
 }
 
 String fill = "";
@@ -86,27 +82,5 @@ void loop() {
     tft.print(input);
   }
 
-   // On vérifie si l'écran détecte une pression physique
-  if (ts.touched())
-  {
-    TS_Point p = ts.getPoint();
-    
-    // Convertir les coordonnées brutes de la puce en Pixels de l'écran (320x240)
-    int pixelX = map(p.x, TS_MINX, TS_MAXX, 0, 320);
-    int pixelY = map(p.y, TS_MINY, TS_MAXY, 0, 240);
-    
-    // Sécurité pour ne pas dépasser les bords de l'écran
-    pixelX = constrain(pixelX, 0, 320);
-    pixelY = constrain(pixelY, 0, 240);
-    
-    // Affichage sur le moniteur série
-    Serial.print("Brut X:"); Serial.print(p.x);
-    Serial.print(" Y:"); Serial.print(p.y);
-    Serial.print("  ->  Pixels X:"); Serial.print(pixelX);
-    Serial.print(" Y:"); Serial.println(pixelY);
-    
-    // Dessiner un petit carré
-    tft.fillRect(320 - pixelX, pixelY - 2, 4, 4, ILI9341_WHITE);
-  }
   delay(5);
 }

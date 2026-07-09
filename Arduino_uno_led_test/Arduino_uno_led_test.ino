@@ -1,14 +1,16 @@
 #include <Adafruit_ICM20948.h>
 #include <Adafruit_ICM20X.h>
 #include <Adafruit_Sensor.h>
-#include <FastLED.h>
 #include <Wire.h>
+#include <APA102.h>
 
 // Définition des broche pour les LED
-#define NUM_LEDS 20
+#define NUM_LEDS 5
 #define DATA_PIN 8  // Fil DI connecté sur la broche 8
 #define CLOCK_PIN 9 // Fil CI connecté sur la broche 9
-CRGB leds[NUM_LEDS];
+rgb_color colors[NUM_LEDS];
+const uint8_t brightness = 1;
+int sensorState[16];
 
 // Définition des broches de sélection
 const int S0 = 2;
@@ -24,6 +26,8 @@ const float seuilInclinaisonY = 3.0;
 const float seuilInclinaisonZ = 3.0;
 
 Adafruit_ICM20948 icm;
+// Create an object for writing to the LED strip.
+APA102<DATA_PIN, CLOCK_PIN> ledStrip;
 
 // Fonction pour configurer les broches de sélection selon le canal désiré (0 à
 // 15)
@@ -37,20 +41,42 @@ void selectChannel(int channel) {
 int readChannel(int channel) {
   selectChannel(channel);
   delayMicroseconds(50);
-  int etat = analogRead(SIG);
+  sensorState[channel] = analogRead(SIG);
   delayMicroseconds(50);
-  etat = analogRead(SIG);
+  sensorState[channel] = analogRead(SIG);
 
   // Affichage résultats
   Serial.print("Canal C" + String(channel) + "  -> ");
-  Serial.println(etat);
-  return etat;
+  Serial.println(sensorState[channel]);
+  return sensorState[channel];
 }
 
 void readAllChannels(int max) {
   for (int i = 0; i < max && i < 16; i++) {
     readChannel(i);
   }
+}
+
+/* Converts a color from HSV to RGB.
+ * h is hue, as a number between 0 and 360.
+ * s is the saturation, as a number between 0 and 255.
+ * v is the value, as a number between 0 and 255. */
+rgb_color hsvToRgb(uint16_t h, uint8_t s, uint8_t v)
+{
+    uint8_t f = (h % 60) * 255 / 60;
+    uint8_t p = (255 - s) * (uint16_t)v / 255;
+    uint8_t q = (255 - f * (uint16_t)s / 255) * (uint16_t)v / 255;
+    uint8_t t = (255 - (255 - f) * (uint16_t)s / 255) * (uint16_t)v / 255;
+    uint8_t r = 0, g = 0, b = 0;
+    switch((h / 60) % 6){
+        case 0: r = v; g = t; b = p; break;
+        case 1: r = q; g = v; b = p; break;
+        case 2: r = p; g = v; b = t; break;
+        case 3: r = p; g = q; b = v; break;
+        case 4: r = t; g = p; b = v; break;
+        case 5: r = v; g = p; b = q; break;
+    }
+    return rgb_color(r, g, b);
 }
 
 void setup(void) {
@@ -60,14 +86,7 @@ void setup(void) {
   }
 
   Serial.println("Init ruban LED APA102");
-  FastLED.addLeds<APA102, DATA_PIN, CLOCK_PIN, BGR>(leds, NUM_LEDS);
-  // FastLED.setBrightness(50);
-
-  fill_solid(leds, NUM_LEDS, CHSV(CRGB::White, 128, 8));
-  FastLED.show();
-  delay(500);
-  fill_solid(leds, NUM_LEDS, CHSV(CRGB::Black, 128, 8));
-  FastLED.show();
+ 
 
   Wire.setClock(100000);
 
@@ -141,11 +160,13 @@ void loop() {
   long zCentiemes = valeurZ * 100;
   uint8_t hueZ = map(zCentiemes, -981, 981, 160, 0);
 
-  // logique d'allumage des LED
-  // CHSV(Teinte, Saturation, Valeur/Luminosite)
-  fill_solid(leds, NUM_LEDS, CHSV(hueX, 128, 8));
-  FastLED.show();
+
+  for(uint16_t i = 0; i < NUM_LEDS; i++)
+  {
+    colors[i] = hsvToRgb(hueX, 255, 255);
+  }
+  ledStrip.write(colors, NUM_LEDS, brightness);
 
   readAllChannels(9);
-  delay(200);
+  delay(100);
 }
