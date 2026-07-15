@@ -74,7 +74,7 @@ void loop() {
       }
     }
   }
-/*
+
   if (Serial1.available() > 0)
   {
     char caractereRecu;
@@ -82,7 +82,7 @@ void loop() {
     fill = input;
     input = Serial1.readStringUntil('\n');  // Read until newline
     Serial.println(input);
-
+/*
     tft.setTextColor(0xF800);
     tft.setCursor(10, 60);
     tft.print(fill);
@@ -91,7 +91,6 @@ void loop() {
     tft.setTextColor(0x780F);
     tft.setCursor(10, 60);
     tft.print(input);
-  }
 */
-
+  }
 }

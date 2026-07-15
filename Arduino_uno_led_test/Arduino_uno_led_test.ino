@@ -5,11 +5,11 @@
 #include <APA102.h>
 
 // Définition des broche pour les LED
-#define NUM_LEDS 5
+#define NUM_LEDS 144
 #define DATA_PIN 8  // Fil DI connecté sur la broche 8
 #define CLOCK_PIN 9 // Fil CI connecté sur la broche 9
 rgb_color colors[NUM_LEDS];
-const uint8_t brightness = 1;
+uint8_t brightness = 1;
 int sensorState[16];
 
 // Définition des broches de sélection
@@ -160,13 +160,65 @@ void loop() {
   long zCentiemes = valeurZ * 100;
   uint8_t hueZ = map(zCentiemes, -981, 981, 160, 0);
 
-
+  uint8_t color_rgb;
   for(uint16_t i = 0; i < NUM_LEDS; i++)
   {
-    colors[i] = hsvToRgb(hueX, 255, 255);
+    if (i < NUM_LEDS / 3)
+      color_rgb = hueX;
+    else if (i > NUM_LEDS / 3 && i < 2*NUM_LEDS / 3)
+      color_rgb = hueY;
+    else
+      color_rgb = hueZ;
+    colors[i] = hsvToRgb(color_rgb, 255, 255);
   }
-  ledStrip.write(colors, NUM_LEDS, brightness);
 
-  readAllChannels(9);
-  delay(100);
+  brightness = 1;
+  uint8_t BIGGESTb = 1;
+  if (sensorState[0] >= 100)
+    brightness = 3;
+  if (sensorState[0] >= 200)
+    brightness = 5;
+  if (sensorState[0] >= 400)
+    brightness = 7;
+  if (sensorState[0] >= 600)
+    brightness = 9;
+  if (brightness > BIGGESTb)
+    BIGGESTb = brightness;
+
+  if (sensorState[2] >= 100)
+    brightness = 3;
+  if (sensorState[2] >= 200)
+    brightness = 5;
+   if (sensorState[2] >= 400)
+    brightness = 7;
+  if (sensorState[2] >= 600)
+    brightness = 9;
+     if (brightness > BIGGESTb)
+    BIGGESTb = brightness;
+/*
+  if (sensorState[3] >= 100)
+    brightness = 3;
+  if (sensorState[3] >= 200)
+    brightness = 5;
+   if (sensorState[3] >= 400)
+    brightness = 7;
+  if (sensorState[3] >= 600)
+    brightness = 9;
+   if (brightness > BIGGESTb)
+    BIGGESTb = brightness;
+  */
+  if (sensorState[4] >= 100)
+    brightness = 3;
+  if (sensorState[4] >= 200)
+    brightness = 5;
+   if (sensorState[4] >= 400)
+    brightness = 7;
+  if (sensorState[4] >= 600)
+    brightness = 9;
+   if (brightness > BIGGESTb)
+    BIGGESTb = brightness;
+  ledStrip.write(colors, NUM_LEDS, BIGGESTb);
+
+  readAllChannels(6);
+  delay(200);
 }
